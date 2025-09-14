@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran Interaktif - ren payment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --light-background: #f0f8ff;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --primary-highlight: #42a5f5;
+            --secondary-highlight: #ab47bc;
+            --border-color: #e0e0e0;
+            --input-border: #f0f0f0;
+            --unavailable-color: #a0a0a0;
+            --main-background-url: url('https://img1.pixhost.to/images/8682/640265309_razamods.jpg');
+            --highlight-gradient: linear-gradient(45deg, var(--primary-highlight), var(--secondary-highlight));
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+            overflow: hidden;
+            position: relative;
+            background-color: var(--light-background);
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: var(--main-background-url);
+            background-size: cover;
+            background-position: center;
+            opacity: 0.7;
+            filter: blur(0px);
+            z-index: -1;
+        }
+
+        /* --- Efek Air Menetes --- */
+        .water-drop {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            animation: drip var(--speed) linear infinite;
+        }
+
+        @keyframes drip {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                transform: translateY(100vh) scale(0.7);
+                opacity: 0.2;
+            }
+        }
+        /* --- Akhir Efek Air Menetes --- */
+
+        .payment-container {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 1;
+            animation: slideInUp 1s ease-out forwards;
+        }
+        
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .brand-name {
+            font-size: 2.2em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: var(--highlight-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: var(--text-color);
+        }
+
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .payment-option {
+            background-color: var(--input-border);
+            padding: 15px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .payment-option:not(.unavailable):hover {
+            transform: scale(1.03);
+            background-color: #f5f5f5;
+        }
+        
+        .payment-option:not(.unavailable):active {
+            transform: scale(0.98);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .payment-option.unavailable {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        .payment-option.unavailable:hover,
+        .payment-option.unavailable:active {
+            transform: scale(1);
+            box-shadow: none;
+            background-color: var(--input-border);
+        }
+
+        .payment-option h2 {
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 0;
+            color: var(--primary-highlight);
+            text-align: center;
+        }
+
+        .payment-option.unavailable h2 {
+            color: var(--unavailable-color);
+        }
+        
+        .payment-logo {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        
+        .unavailable-status {
+            font-size: 0.75em;
+            color: var(--unavailable-color);
+            font-weight: 500;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .footer-note {
+            font-size: 0.85em;
+            color: var(--text-color);
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+        
+        /* Overlay and Card */
+        .detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .detail-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .detail-card {
+            background-color: var(--card-background);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .detail-overlay.active .detail-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-header h2 {
+            font-size: 1.6em;
+            font-weight: 600;
+            background: var(--highlight-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover {
+            color: var(--primary-highlight);
+        }
+
+        .detail-content {
+            text-align: left;
+            padding: 5px 0;
+        }
+        
+        .detail-content .copy-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .detail-content p {
+            margin: 10px 0;
+            font-size: 1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--input-border);
+            padding-bottom: 8px;
+        }
+        
+        .detail-content p:last-child {
+            border-bottom: none;
+        }
+
+        .detail-content .label {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-right: 10px;
+        }
+        
+        .copy-button {
+            padding: 8px 12px;
+            background-color: var(--primary-highlight);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background-color: #3b8ac4;
+        }
+
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+
+        .qr-detail img {
+            max-width: 85%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid var(--primary-highlight);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            cursor: pointer;
+        }
+        
+        /* Notifikasi saat berhasil menyalin */
+        .copy-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 20;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Money Explosion Effect on click */
+        .money-explosion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .money-piece {
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            background-color: gold;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: moneyFallClick 3s forwards ease-out;
+        }
+
+        .money-piece.bill {
+            width: 30px;
+            height: 15px;
+            background-color: lightgreen;
+            border-radius: 3px;
+        }
+
+        .money-piece.coin {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ffd700;
+            border: 1px solid #ccad00;
+        }
+
+        @keyframes moneyFallClick {
+            0% {
+                opacity: 1;
+                transform: translate(var(--x), var(--y)) rotate(0deg) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(var(--x) + var(--dx)), calc(var(--y) + var(--dy))) rotate(var(--rot)) scale(0.5);
+            }
+        }
+
+        /* Responsiveness */
+        @media (max-width: 600px) {
+            .payment-container { padding: 25px; }
+            .brand-name { font-size: 1.8em; }
+            h1 { font-size: 1.4em; }
+            .payment-grid { grid-template-columns: 1fr; gap: 10px; }
+            .payment-option { padding: 12px 8px; }
+            .payment-option h2 { font-size: 1em; }
+            .payment-logo { width: 40px; height: 40px; }
+            .detail-card {
+                padding: 20px;
+                max-width: 95%;
+            }
+            .detail-header h2 { font-size: 1.4em; }
+            .close-button { font-size: 1.6em; }
+            .detail-content p { font-size: 0.9em; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="water-drop-container"></div>
+
+<div class="payment-container">
+    <div class="brand-name">ren payment</div>
+    <h1>Pilih Metode Pembayaran</h1>
+
+    <div class="payment-grid">
+        <div class="payment-option dana" onclick="showDetail('dana'); triggerMoneyExplosion(event);">
+            <img src="https://files.catbox.moe/y6qlsf.jpg" alt="Logo DANA" class="payment-logo">
+            <h2>DANA</h2>
+        </div>
+        
+        <div class="payment-option gopay unavailable">
+            <img src="https://files.catbox.moe/bkxq7f.jpg" alt="Logo GoPay" class="payment-logo">
+            <h2>GoPay</h2>
+            <p class="unavailable-status">Belum Tersedia</p>
+        </div>
+        
+        <div class="payment-option qris" onclick="showDetail('qris'); triggerMoneyExplosion(event);">
+            <img src="https://files.catbox.moe/gqaza8.jpg" alt="Logo QRIS" class="payment-logo">
+            <h2>QRIS</h2>
+        </div>
+    </div>
+    
+    <p class="footer-note">
+        Penting: Pastikan nama yang muncul adalah **ren payment** saat konfirmasi pembayaran untuk menghindari kesalahan.
+    </p>
+</div>
+
+<div id="dana-detail-overlay" class="detail-overlay">
+    <div class="detail-card">
+        <div class="detail-header">
+            <h2>Detail DANA</h2>
+            <button class="close-button" onclick="hideDetail('dana')">&times;</button>
+        </div>
+        <div class="detail-content">
+            <p><span class="label">Nama Akun:</span> <span>ren payment</span></p>
+            <p>
+                <span class="label">Nomor DANA:</span> 
+                <span id="dana-number">087832767706</span>
+                <button class="copy-button" onclick="copyToClipboard('dana-number')">Salin</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div id="qris-detail-overlay" class="detail-overlay">
+    <div class="detail-card">
+        <div class="detail-header">
+            <h2>Detail QRIS</h2>
+            <button class="close-button" onclick="hideDetail('qris')">&times;</button>
+        </div>
+        <div class="detail-content qr-detail">
+            <p style="text-align: center; color: var(--text-color);">Scan kode QR di bawah ini:</p>
+            <a href="https://img1.pixhost.to/images/8682/640266103_razamods.jpg" download="QRIS-renpayment.jpg">
+                <img src="https://img1.pixhost.to/images/8682/640266103_razamods.jpg" alt="QRIS Code">
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="money-explosion" id="moneyExplosionContainer"></div>
+<div id="copy-notification" class="copy-notification">Nomor disalin!</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const paymentContainer = document.querySelector('.payment-container');
+        paymentContainer.style.opacity = '1';
+        paymentContainer.style.transform = 'translateY(0)';
+        createWaterDrops();
+    });
+
+    function showDetail(type) {
+        const overlay = document.getElementById(type + '-detail-overlay');
+        overlay.classList.add('active');
+    }
+
+    function hideDetail(type) {
+        const overlay = document.getElementById(type + '-detail-overlay');
+        overlay.classList.remove('active');
+    }
+
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const text = element.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('Nomor disalin!');
+        }).catch(err => {
+            console.error('Gagal menyalin: ', err);
+            showNotification('Gagal menyalin');
+        });
+    }
+
+    function showNotification(message) {
+        const notification = document.getElementById('copy-notification');
+        notification.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
+
+    function triggerMoneyExplosion(event) {
+        const container = document.getElementById('moneyExplosionContainer');
+        const count = 20;
+        const types = ['bill', 'coin', 'piece'];
+
+        for (let i = 0; i < count; i++) {
+            const piece = document.createElement('div');
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            
+            piece.className = 'money-piece ' + randomType;
+            
+            const x = event.clientX;
+            const y = event.clientY;
+            
+            const dx = (Math.random() - 0.5) * 400;
+            const dy = (Math.random() - 0.5) * 400 + 200;
+            const rot = Math.random() * 360;
+            
+            piece.style.setProperty('--x', `${x}px`);
+            piece.style.setProperty('--y', `${y}px`);
+            piece.style.setProperty('--dx', `${dx}px`);
+            piece.style.setProperty('--dy', `${dy}px`);
+            piece.style.setProperty('--rot', `${rot}deg`);
+            
+            container.appendChild(piece);
+            
+            piece.onanimationend = () => {
+                piece.remove();
+            };
+        }
+    }
+    
+    // --- JavaScript untuk Efek Tetesan Air ---
+    function createWaterDrops() {
+        const container = document.getElementById('water-drop-container');
+        const dropCount = 50; // Jumlah tetesan air
+        const windowWidth = window.innerWidth;
+
+        for (let i = 0; i < dropCount; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'water-drop';
+            
+            // Posisi acak di bagian atas layar
+            const leftPosition = Math.random() * windowWidth;
+            
+            // Kecepatan animasi acak agar tidak seragam
+            const animationDuration = 5 + Math.random() * 15; // 5-20 detik
+            
+            drop.style.left = `${leftPosition}px`;
+            drop.style.setProperty('--speed', `${animationDuration}s`);
+            
+            container.appendChild(drop);
+        }
+    }
+    // --- Akhir JavaScript untuk Efek Tetesan Air ---
+
+</script>
+
+</body>
+</html>
